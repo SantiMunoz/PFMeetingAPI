@@ -15,6 +15,7 @@ package com.planfeed.services;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.ws.rs.core.StreamingOutput;
@@ -22,6 +23,7 @@ import javax.ws.rs.core.StreamingOutput;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
@@ -118,8 +120,18 @@ public class MeetingServiceImpl implements MeetingService {
 				client=generalMeth.getClient(meeting.getCreatorEmail());
 				Event result = client.events().get(meeting.getCalendarId(), meeting.getCalendarEventId()).execute();
 				result.setSummary(meeting.getTitle());
+				
 				DateTime auxDate = new DateTime(meeting.getDate());
-				result.getStart().setDateTime(auxDate);
+				EventDateTime start = new EventDateTime();
+				start.setDateTime(auxDate);
+				result.setStart(start);
+				
+				long endMili = meeting.getDate()+calculateMeetingTime(meeting.getAgenda());
+				auxDate = new DateTime(endMili);
+				EventDateTime end = new EventDateTime();
+				end.setDateTime(auxDate);
+				result.setEnd(end);
+				
 				String auxDescription=meeting.getDescription()+globalVal.getMessageDescription(meeting.getMeetingId());
 				result.setDescription(auxDescription);
 				client.events().update(meeting.getCalendarId(), result.getId(), result).execute();
@@ -128,6 +140,7 @@ public class MeetingServiceImpl implements MeetingService {
 			
 			return meeting;
 		}catch (Exception e){
+			e.printStackTrace();
 			throw new Exception(e.getStackTrace().toString());
 		}
 		
@@ -250,6 +263,15 @@ public class MeetingServiceImpl implements MeetingService {
 		return baosPDF;
 			
 		
+	}
+	
+	private static long calculateMeetingTime(ArrayList<PointOfAgenda> agenda){
+		long totalMili = 0l;
+		for(PointOfAgenda point: agenda){
+			totalMili+=point.getDuration()*1000; //seconds to miliseconds
+		}
+		
+		return totalMili;
 	}
 	
 	 private static void addEmptyLine(Paragraph paragraph, int number) {
