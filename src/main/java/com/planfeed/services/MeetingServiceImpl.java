@@ -154,11 +154,12 @@ public class MeetingServiceImpl implements MeetingService {
 		try{
 			
 			Meeting meeting = bbdd.getMeeting(meetingId);
-
+			if(!meeting.getStatus().equalsIgnoreCase(newStatus)||meeting.getStatus()==null  || ORDER_CHANGE_STATUS.equalsIgnoreCase(newStatus)){
 				meeting=modifyStatusImpl(meeting,newStatus);
-				
+			
 			
 			bbdd.putMeeting(meeting);
+			}
 		}catch (MeetingNotFound e){
 			throw new MeetingNotFound();
 		}catch (Exception e){
@@ -169,7 +170,7 @@ public class MeetingServiceImpl implements MeetingService {
 
 	private Meeting modifyStatusImpl(Meeting meeting, String newStatus){
 		
-		if(meeting.getStatus()==null || !meeting.getStatus().equalsIgnoreCase(newStatus) || ORDER_CHANGE_STATUS.equalsIgnoreCase(newStatus)){
+		
 
 			switch(newStatus){
 				case "play":
@@ -191,6 +192,7 @@ public class MeetingServiceImpl implements MeetingService {
 					break;
 				case "finished":
 					meeting.setStatus(newStatus);
+					meeting.setTimeFinish((new Date()).getTime());
 					break;
 				case "offTime":
 					meeting.setStatus(newStatus);
@@ -199,8 +201,8 @@ public class MeetingServiceImpl implements MeetingService {
 				default:
 					//do nothing
 					break;
-				}
-		}
+		
+			}
 		return meeting;
 	}
 

@@ -29,16 +29,18 @@ import com.planfeed.services.exceptions.MeetingNotFound;
 
 /**
  * Per utilitzar aquesta classe es necessari tindre creades les següents taules:
- * CREATE TABLE Meeting ( meetingId VARCHAR(20) NOT NULL, title VARCHAR(200), date BIGINT, description VARCHAR(10000), init BIGINT, pauseDate BIGINT, status VARCHAR(10), initOffTime BIGINT, creatorEmail VARCHAR(100),calendarEventId VARCHAR(200), calendarId VARCHAR(200), PRIMARY KEY (meetingId));
+ * CREATE TABLE Meeting ( meetingId VARCHAR(20) NOT NULL, title VARCHAR(200), date BIGINT, description VARCHAR(10000), init BIGINT, pauseDate BIGINT, status VARCHAR(10), initOffTime BIGINT, creatorEmail VARCHAR(100),calendarEventId VARCHAR(200), calendarId VARCHAR(200), timeFinish BIGINT, PRIMARY KEY (meetingId));
  * CREATE TABLE PointOfAgenda ( pointId VARCHAR(20) NOT NULL, name VARCHAR(200), duration MEDIUMINT, originalDuration MEDIUMINT, comment VARCHAR(10000),position TINYINT, meetingId VARCHAR(20) NOT NULL, PRIMARY KEY (pointId, meetingId));
- *EN PRINCIPI NO CAL|| CREATE TABLE MatchEvent (eventCalendarId VARCHAR(200) NOT NULL, meetingId VARCHAR(20) NOT NULL, PRIMARY KEY (eventCalendarId));
  * CREATE TABLE Tokens ( email VARCHAR(50) NOT NULL, token VARCHAR(200), refreshToken VARCHAR(200) NOT NULL, PRIMARY KEY (email));
+
  * @author santi
  *
  */
 public class MySqlImpl implements Querys {
 	
 	public MySqlImpl(){}
+
+
 	
 	public Meeting getMeeting(String id) throws Exception {
 		Meeting meeting = new Meeting();
@@ -72,6 +74,7 @@ public class MySqlImpl implements Querys {
 					meeting.setCreatorEmail(rs.getString("creatorEmail"));
 					meeting.setCalendarEventId(rs.getString("calendarEventId"));
 					meeting.setCalendarId(rs.getString("calendarId"));
+					meeting.setTimeFinish(rs.getLong("timeFinish"));
 				}while(rs.next());
 				
 			}else{
@@ -146,7 +149,7 @@ public class MySqlImpl implements Querys {
 					meeting.setCreatorEmail(rs.getString("creatorEmail"));
 					meeting.setCalendarEventId(rs.getString("calendarEventId"));
 					meeting.setCalendarId(rs.getString("calendarId"));
-					
+					meeting.setTimeFinish(rs.getLong("timeFinish"));
 					meetingsList.add(meeting);
 				}while(rs.next());
 				
@@ -184,9 +187,9 @@ public class MySqlImpl implements Querys {
 		}
 		Statement st=null;
 		
-		String meetingQuery = "INSERT INTO Meeting (meetingId, title, date, description, init, pauseDate, status, initOffTime, creatorEmail, calendarEventId, calendarId) " +
-				"VALUES ('"+meeting.getMeetingId()+"', '"+checkNull(meeting.getTitle())+"', "+meeting.getDate()+", '"+checkNull(meeting.getDescription())+"', "+meeting.getInit()+", "+meeting.getPauseDate()+", '"+checkNull(meeting.getStatus())+"',"+meeting.getInitOffTime()+", '"+checkNull(meeting.getCreatorEmail())+"', '"+checkNull(meeting.getCalendarEventId())+"', '"+checkNull(meeting.getCalendarId())+"') " +
-				"ON DUPLICATE KEY UPDATE title='"+checkNull(meeting.getTitle())+"', date="+meeting.getDate()+", description='"+checkNull(meeting.getDescription())+"', init="+meeting.getInit()+", pauseDate="+meeting.getPauseDate()+", status='"+checkNull(meeting.getStatus())+"', initOffTime="+meeting.getInitOffTime()+", creatorEmail='"+checkNull(meeting.getCreatorEmail())+"', calendarEventId='"+checkNull(meeting.getCalendarEventId())+"', calendarId='"+checkNull(meeting.getCalendarId())+"';";
+		String meetingQuery = "INSERT INTO Meeting (meetingId, title, date, description, init, pauseDate, status, initOffTime, creatorEmail, calendarEventId,calendarId, timeFinish) " +
+				"VALUES ('"+meeting.getMeetingId()+"', '"+checkNull(meeting.getTitle())+"', "+meeting.getDate()+", '"+checkNull(meeting.getDescription())+"', "+meeting.getInit()+", "+meeting.getPauseDate()+", '"+checkNull(meeting.getStatus())+"',"+meeting.getInitOffTime()+", '"+checkNull(meeting.getCreatorEmail())+"', '"+checkNull(meeting.getCalendarEventId())+"', '"+checkNull(meeting.getCalendarId())+"', "+meeting.getTimeFinish()+") " +
+				"ON DUPLICATE KEY UPDATE title='"+checkNull(meeting.getTitle())+"', date="+meeting.getDate()+", description='"+checkNull(meeting.getDescription())+"', init="+meeting.getInit()+", pauseDate="+meeting.getPauseDate()+", status='"+checkNull(meeting.getStatus())+"', initOffTime="+meeting.getInitOffTime()+", creatorEmail='"+checkNull(meeting.getCreatorEmail())+"', calendarEventId='"+checkNull(meeting.getCalendarEventId())+"', calendarId='"+checkNull(meeting.getCalendarId())+"', timeFinish="+meeting.getTimeFinish()+";";
 		
 		try{
 			st = conn.createStatement();
@@ -202,10 +205,6 @@ public class MySqlImpl implements Querys {
 			st.close();
 			throw new Exception(e.getStackTrace().toString());
 		}
-	}
-	public void deleteMeeting(String meetingId) throws Exception {
-		// not implemented
-
 	}
 
 
@@ -369,10 +368,6 @@ public class MySqlImpl implements Querys {
 		}
 	}
 	
-	public Token getTokenByMeetingId(String meetingId)throws Exception{
-		return null;
-		
-	}
 	
 	private String checkNull(String data){
 		if(data==null){
@@ -383,40 +378,7 @@ public class MySqlImpl implements Querys {
 		}
 	}
 	
-//	public void putEventMatch(String calendarEventId, String meetingId) throws Exception{
-//		MySqlConnection mysqlconn = null;
-//		Connection conn = null;
-//		try{
-//			mysqlconn = new MySqlConnection();
-//			conn = mysqlconn.getConn();
-//		}catch(Exception e){
-//			throw new Exception(e.getStackTrace().toString());
-//		}
-//		Statement st=null;
-//		
-//		String tokenQuery = "INSERT INTO MatchEvent ( eventCalendarId, meetingId) "
-//				+ "VALUES ('"+calendarEventId+"', '"+meetingId+"') "
-//				+ "ON DUPLICATE KEY UPDATE  eventCalendarId='"+calendarEventId+"', meetingId='"+meetingId+"';";
-//	
-//		try{
-//			st = conn.createStatement();
-//			st.executeUpdate(tokenQuery);
-//			
-//			conn.close();
-//			st.close();
-//			
-//		}catch(SQLException e){
-//			e.printStackTrace();
-//			conn.close();
-//			st.close();
-//			throw new Exception(e.getStackTrace().toString());
-//		}catch(Exception e){
-//			e.printStackTrace();
-//			conn.close();
-//			st.close();
-//			throw new Exception(e.getStackTrace().toString());
-//		}
-//	}
+
 	
 	public String getMeetingIdByEventId(String eventId) throws Exception{
 		MySqlConnection mysqlconn = null;

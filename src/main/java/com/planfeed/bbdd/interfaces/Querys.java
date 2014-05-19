@@ -23,12 +23,12 @@ import com.planfeed.elements.Token;
 public interface Querys {
 	
 	public Meeting getMeeting(String id) throws Exception;
-	public void deleteMeeting(String meetingId) throws Exception;
 	public void putMeeting(Meeting meeting) throws Exception;
 	public void putToken(Token token)throws Exception;
 	public Token getTokenByEmail(String email)throws Exception;
-	public Token getTokenByMeetingId(String meetingId)throws Exception;
 	public ArrayList<Meeting> getMeetingsbyCalendarId(String calendarId) throws Exception;
 	public void putMeetingOnly(Meeting meeting) throws Exception;
 	public String getMeetingIdByEventId(String eventId) throws Exception;
+
+
 }

@@ -162,6 +162,5 @@ public class GoogleServiceImpl {
 		return rs[0];
 	}
 	
-	
 
 }

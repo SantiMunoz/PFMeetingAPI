@@ -31,6 +31,7 @@ public class Meeting {
 	private String creatorEmail=null;
 	private String calendarEventId=null;
 	private String calendarId=null;
+	private long timeFinish=0l;
 	
 	public Meeting() {
 		
@@ -134,6 +135,14 @@ public class Meeting {
 
 	public void setCalendarId(String calendarId) {
 		this.calendarId = calendarId;
+	}
+
+	public long getTimeFinish() {
+		return timeFinish;
+	}
+
+	public void setTimeFinish(long timeFinish) {
+		this.timeFinish = timeFinish;
 	}
 
 
