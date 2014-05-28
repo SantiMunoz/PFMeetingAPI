@@ -14,6 +14,7 @@ limitations under the License.*/
 package com.planfeed.bbdd;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -53,14 +54,15 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		ResultSet rs=null;
-		String meetingQuery = "SELECT * FROM Meeting WHERE meetingId='"+id+"';";
-		String agendaQuery = "SELECT * FROM PointOfAgenda WHERE meetingId='"+id+"' ORDER BY position;";
+//		String meetingQuery = "SELECT * FROM Meeting WHERE meetingId='"+id+"';";
+//		String agendaQuery = "SELECT * FROM PointOfAgenda WHERE meetingId='"+id+"' ORDER BY position;";
 		
 		try{
-			st = conn.createStatement();
-			rs= st.executeQuery(meetingQuery);
+			st = conn.prepareStatement("SELECT * FROM Meeting WHERE meetingId=?;");
+			st.setString(1, id);
+			rs= st.executeQuery();
 			if(rs.next()){
 				do{
 					meeting.setMeetingId(rs.getString("meetingId"));
@@ -80,8 +82,9 @@ public class MySqlImpl implements Querys {
 			}else{
 				throw new MeetingNotFound();
 			}
-			
-			rs = st.executeQuery(agendaQuery);
+			st = conn.prepareStatement("SELECT * FROM PointOfAgenda WHERE meetingId=? ORDER BY position;");
+			st.setString(1, id);
+			rs = st.executeQuery();
 			
 			while(rs.next()){
 				PointOfAgenda point = new PointOfAgenda();
@@ -126,14 +129,15 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		ResultSet rs=null;
-		String meetingQuery = "SELECT * FROM Meeting WHERE calendarId='"+calendarId+"';";
+		//String meetingQuery = "SELECT * FROM Meeting WHERE calendarId='"+calendarId+"';";
 		
 		
 		try{
-			st = conn.createStatement();
-			rs= st.executeQuery(meetingQuery);
+			st = conn.prepareStatement("SELECT * FROM Meeting WHERE calendarId=?;");
+			st.setString(1, calendarId);
+			rs= st.executeQuery();
 			if(rs.next()){
 				Meeting meeting = new Meeting();
 				do{
@@ -185,15 +189,39 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
-		
-		String meetingQuery = "INSERT INTO Meeting (meetingId, title, date, description, init, pauseDate, status, initOffTime, creatorEmail, calendarEventId,calendarId, timeFinish) " +
-				"VALUES ('"+meeting.getMeetingId()+"', '"+checkNull(meeting.getTitle())+"', "+meeting.getDate()+", '"+checkNull(meeting.getDescription())+"', "+meeting.getInit()+", "+meeting.getPauseDate()+", '"+checkNull(meeting.getStatus())+"',"+meeting.getInitOffTime()+", '"+checkNull(meeting.getCreatorEmail())+"', '"+checkNull(meeting.getCalendarEventId())+"', '"+checkNull(meeting.getCalendarId())+"', "+meeting.getTimeFinish()+") " +
-				"ON DUPLICATE KEY UPDATE title='"+checkNull(meeting.getTitle())+"', date="+meeting.getDate()+", description='"+checkNull(meeting.getDescription())+"', init="+meeting.getInit()+", pauseDate="+meeting.getPauseDate()+", status='"+checkNull(meeting.getStatus())+"', initOffTime="+meeting.getInitOffTime()+", creatorEmail='"+checkNull(meeting.getCreatorEmail())+"', calendarEventId='"+checkNull(meeting.getCalendarEventId())+"', calendarId='"+checkNull(meeting.getCalendarId())+"', timeFinish="+meeting.getTimeFinish()+";";
-		
+		PreparedStatement st=null;
+
 		try{
-			st = conn.createStatement();
-			st.executeUpdate(meetingQuery);
+
+			st =conn.prepareStatement( "INSERT INTO Meeting (meetingId, title, date, description, init, pauseDate, status, initOffTime, creatorEmail, calendarEventId,calendarId, timeFinish) " +
+				"VALUES (?,?,?,?,?,?,?,?,?,?,?,?) " +
+				"ON DUPLICATE KEY UPDATE title=?, date=?, description=?, init=?, pauseDate=?, status=?, initOffTime=?, creatorEmail=?, calendarEventId=?, calendarId=?, timeFinish=?;");
+			st.setString(1, meeting.getMeetingId());
+			st.setString(2,checkNull(meeting.getTitle()) );
+			st.setLong(3, meeting.getDate());
+			st.setString(4,checkNull(meeting.getDescription()));
+			st.setLong(5, meeting.getInit());
+			st.setLong(6, meeting.getPauseDate());
+			st.setString(7,checkNull(meeting.getStatus()));
+			st.setLong(8, meeting.getInitOffTime());
+			st.setString(9,checkNull(meeting.getCreatorEmail()));
+			st.setString(10,checkNull(meeting.getCalendarEventId()));
+			st.setString(11,checkNull(meeting.getCalendarId()));
+			st.setLong(12, meeting.getTimeFinish());
+			st.setString(13,checkNull(meeting.getTitle()) );
+			st.setLong(14, meeting.getDate());
+			st.setString(15,checkNull(meeting.getDescription()));
+			st.setLong(16, meeting.getInit());
+			st.setLong(17, meeting.getPauseDate());
+			st.setString(18,checkNull(meeting.getStatus()));
+			st.setLong(19, meeting.getInitOffTime());
+			st.setString(20,checkNull(meeting.getCreatorEmail()));
+			st.setString(21,checkNull(meeting.getCalendarEventId()));
+			st.setString(22,checkNull(meeting.getCalendarId()));
+			st.setLong(23, meeting.getTimeFinish());
+			st.executeUpdate();
+			
+			
 		}catch(SQLException e){
 			e.printStackTrace();
 			conn.close();
@@ -218,31 +246,52 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		ResultSet rs=null;
 		int position=1;
 
 		try{
-			st = conn.createStatement();
+			
 			
 			//put meeting
 			putMeetingOnly(meeting);
 			
 			//put agenda
 			for(PointOfAgenda point: meeting.getAgenda()){
-				String agendaQuery = "INSERT INTO PointOfAgenda (pointId, name, duration, originalDuration, comment, position, meetingId) "+
-						"VALUES ('"+checkNull(point.getPointId())+"', '"+checkNull(point.getName())+"', "+point.getDuration()+", "+point.getOriginalDuration()+", '"+checkNull(point.getComment())+"', "+position+", '"+checkNull(meeting.getMeetingId())+"') "+
-						"ON DUPLICATE KEY UPDATE name='"+checkNull(point.getName())+"', duration="+point.getDuration()+", originalDuration="+point.getOriginalDuration()+", comment='"+checkNull(point.getComment())+"', position="+position+", meetingId='"+meeting.getMeetingId()+"';";
 				
-				st.executeUpdate(agendaQuery);
+//				String agendaQuery = "INSERT INTO PointOfAgenda (pointId, name, duration, originalDuration, comment, position, meetingId) "+
+//						"VALUES ('"+checkNull(point.getPointId())+"', '"+checkNull(point.getName())+"', "+point.getDuration()+", "+point.getOriginalDuration()+", '"+checkNull(point.getComment())+"', "+position+", '"+checkNull(meeting.getMeetingId())+"') "+
+//						"ON DUPLICATE KEY UPDATE name='"+checkNull(point.getName())+"', duration="+point.getDuration()+", originalDuration="+point.getOriginalDuration()+", comment='"+checkNull(point.getComment())+"', position="+position+", meetingId='"+meeting.getMeetingId()+"';";
+				
+				st = conn.prepareStatement("INSERT INTO PointOfAgenda (pointId, name, duration, originalDuration, comment, position, meetingId) "+
+						"VALUES (?,?,?,?,?,?,?) "+
+						"ON DUPLICATE KEY UPDATE name=?, duration=?, originalDuration=?, comment=?, position=?, meetingId=?;");
+				st.setString(1, checkNull(point.getPointId()));
+				st.setString(2, checkNull(point.getName()));
+				st.setLong(3, point.getDuration());
+				st.setLong(4, point.getOriginalDuration());
+				st.setString(5, checkNull(point.getComment()));
+				st.setInt(6, position);
+				st.setString(7, checkNull(meeting.getMeetingId()));
+				st.setString(8, checkNull(point.getName()));
+				st.setLong(9, point.getDuration());
+				st.setLong(10, point.getOriginalDuration());
+				st.setString(11, checkNull(point.getComment()));
+				st.setInt(12, position);
+				st.setString(13, checkNull(meeting.getMeetingId()));
+				
+				
+				st.executeUpdate();
 				position+=1;
 			}
 			
 			String queryToDelete="DELETE FROM PointOfAgenda WHERE pointId IN (";
-			String getPointsQuery="SELECT pointId FROM PointOfAgenda WHERE meetingId='"+meeting.getMeetingId()+"'";
-			rs= st.executeQuery(getPointsQuery);
+			//String getPointsQuery="SELECT pointId FROM PointOfAgenda WHERE meetingId='"+meeting.getMeetingId()+"'";
+			st = conn.prepareStatement("SELECT pointId FROM PointOfAgenda WHERE meetingId=?");
+			st.setString(1, meeting.getMeetingId());
+			rs= st.executeQuery();
 			boolean first=true;
-				
+			ArrayList<String> pointsToDelete = new ArrayList<String>();
 			while(rs.next()){ 
 				boolean trobat=false;
 				Iterator it=meeting.getAgenda().iterator();
@@ -252,17 +301,24 @@ public class MySqlImpl implements Querys {
 				}
 				if(!trobat){
 					if(first){
-						queryToDelete+="'"+rs.getString("pointId")+"'";
+						queryToDelete+="?";
+						pointsToDelete.add(rs.getString("pointId"));
 						first=false;
 					}else{
-						queryToDelete+=",'"+rs.getString("pointId")+"'";
+						queryToDelete+=",?";
+						pointsToDelete.add(rs.getString("pointId"));
 					}
 				}	
 			}
 			queryToDelete+=");";
 			if(!first){
-
-				st.executeUpdate(queryToDelete);
+				st = conn.prepareStatement(queryToDelete);
+				int index = 1;
+				for(String id:pointsToDelete){
+					st.setString(index, id);
+					index++;
+				}
+				st.executeUpdate();
 			}
 
 			conn.close();
@@ -294,15 +350,20 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		
 		String tokenQuery = "INSERT INTO Tokens ( email, token, refreshToken) "
-				+ "VALUES ('"+token.getEmail()+"', '"+token.getToken()+"', '"+token.getResfreshToken()+"')"
-						+ "ON DUPLICATE KEY UPDATE  token='"+token.getToken()+"', refreshToken='"+token.getResfreshToken()+"';";
+				+ "VALUES (?,?,?)"
+						+ "ON DUPLICATE KEY UPDATE  token=?, refreshToken=?;";
 	
 		try{
-			st = conn.createStatement();
-			st.executeUpdate(tokenQuery);
+			st = conn.prepareStatement(tokenQuery);
+			st.setString(1, token.getEmail());
+			st.setString(2, token.getToken());
+			st.setString(3, token.getResfreshToken());
+			st.setString(4, token.getToken());
+			st.setString(5, token.getResfreshToken());
+			st.executeUpdate();
 			
 			conn.close();
 			st.close();
@@ -331,13 +392,13 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		ResultSet rs=null;
-		String meetingIdRes=null;
-		String query = "SELECT * FROM Tokens WHERE email='"+email+"';";
+		String query = "SELECT * FROM Tokens WHERE email=?;";
 		try{
-			st = conn.createStatement();
-			rs= st.executeQuery(query);
+			st = conn.prepareStatement(query);
+			st.setString(1, email);
+			rs= st.executeQuery();
 			if(rs.next()){
 				token.setEmail(email);
 				token.setToken(rs.getString("token"));
@@ -389,13 +450,14 @@ public class MySqlImpl implements Querys {
 		}catch(Exception e){
 			throw new Exception(e.getStackTrace().toString());
 		}
-		Statement st=null;
+		PreparedStatement st=null;
 		ResultSet rs=null;
 		String meetingIdRes=null;
-		String query = "SELECT meetingId FROM Meeting WHERE calendarEventId='"+eventId+"';";
+		String query = "SELECT meetingId FROM Meeting WHERE calendarEventId=?;";
 		try{
-			st = conn.createStatement();
-			rs= st.executeQuery(query);
+			st = conn.prepareStatement(query);
+			st.setString(1, eventId);
+			rs= st.executeQuery();
 			if(rs.next()){
 				meetingIdRes = rs.getString("meetingId");
 				
