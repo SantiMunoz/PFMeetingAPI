@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import javax.ws.rs.core.StreamingOutput;
 
 import com.planfeed.elements.Meeting;
+import com.planfeed.elements.NotificationsChannel;
 import com.planfeed.elements.Token;
 
 public interface Querys {
@@ -29,6 +30,7 @@ public interface Querys {
 	public ArrayList<Meeting> getMeetingsbyCalendarId(String calendarId) throws Exception;
 	public void putMeetingOnly(Meeting meeting) throws Exception;
 	public String getMeetingIdByEventId(String eventId) throws Exception;
-
+	public NotificationsChannel getChannel(String channelId) throws Exception;
+	public void putChannel(NotificationsChannel notiChannel) throws Exception;
 
 }

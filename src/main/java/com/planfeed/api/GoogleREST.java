@@ -21,6 +21,7 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
@@ -67,7 +68,17 @@ public class GoogleREST {
 		}
 	}
 	
-
+	@POST
+	@Path("/channelid")
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.TEXT_PLAIN)
+	public Response checkChannel (String channelID){
+		try{
+			return Response.ok(gs.checkChannelId(channelID)).build();
+		}catch(Exception e){
+			throw new WebApplicationException(e.getStackTrace().toString());
+		}
+	}
 
 
 }

@@ -15,6 +15,7 @@ package com.planfeed.services;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -27,9 +28,11 @@ import com.google.api.services.calendar.model.Event;
 import com.planfeed.bbdd.MySqlImpl;
 import com.planfeed.bbdd.interfaces.Querys;
 import com.planfeed.elements.Meeting;
+import com.planfeed.elements.NotificationsChannel;
 import com.planfeed.elements.Token;
 import com.planfeed.others.GeneralMethods;
 import com.planfeed.others.GlobalValues;
+import com.planfeed.services.exceptions.ChannelNotFound;
 import com.planfeed.services.exceptions.MeetingNotFound;
 import com.planfeed.services.interfaces.MeetingService;
 
@@ -87,11 +90,9 @@ public class GoogleServiceImpl {
 	
 	public void newNotification(String resourceUri) throws Exception{
 		ArrayList<Meeting> meetingsList = new ArrayList<Meeting>();
-		Token token=null;
 		String calendarId;
 
 		boolean trobat=false;
-		GoogleCredential credentials=null;
 		Calendar client=null;
 
 		calendarId = getCalendarId(resourceUri);
@@ -117,13 +118,13 @@ public class GoogleServiceImpl {
 				if(first){
 					
 					client=generalMeth.getClient(auxMeeting.getCreatorEmail());
-					
 				}else{
 					first=false;
 				}
-				
+
 				Event result = client.events().get(auxMeeting.getCalendarId(), auxMeeting.getCalendarEventId()).execute();
-				
+
+
 				if(!auxMeeting.getTitle().equalsIgnoreCase(result.getSummary())){
 					anyChanges=true;
 					auxMeeting.setTitle(result.getSummary());
@@ -141,13 +142,14 @@ public class GoogleServiceImpl {
 				}
 				
 				if(anyChanges){
+					trobat=true;
 					bbdd.putMeetingOnly(auxMeeting);
 				}
 			}
 
 			
 		}catch(Exception e){
-			e.printStackTrace();
+			//e.printStackTrace();
 			throw new Exception(e.getStackTrace().toString());
 		}
 
@@ -162,5 +164,41 @@ public class GoogleServiceImpl {
 		return rs[0];
 	}
 	
+	public String checkChannelId(String channelId) throws Exception{
+		String channelIdDefinitive=channelId;
+		NotificationsChannel channel = new NotificationsChannel();
+		try{
+			channel = bbdd.getChannel(channelId);
+			long difTime= (new Date()).getTime() - channel.getStartTime();
+			
+			//if pass to 13 days
+			if(difTime>1123200){
+				String newChannelId = newChannelId(channelId);
+				return checkChannelId(newChannelId);
+			}else{
+				return channelId;
+			}
+			
+		}catch(ChannelNotFound e){
+			channel.setChannelId(channelId);
+			channel.setStartTime((new Date()).getTime());
+			bbdd.putChannel(channel);
+			return channelId;
+		}catch(Exception e){
+			e.printStackTrace();
+			throw new Exception(e.getStackTrace().toString());
+		}
+
+	}
+	
+	public String newChannelId(String channelId){
+		int idLength = channelId.length();
+		String newChannelId = channelId.substring(0, idLength-4);
+		String subId = channelId.substring(idLength-4, idLength);
+		int newsubId = Integer.parseInt(subId);
+		newsubId++;
+		newChannelId = newChannelId+newsubId;
+		return newChannelId;
+	}
 
 }

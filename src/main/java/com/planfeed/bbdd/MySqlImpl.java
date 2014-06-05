@@ -23,8 +23,10 @@ import java.util.Iterator;
 
 import com.planfeed.bbdd.interfaces.Querys;
 import com.planfeed.elements.Meeting;
+import com.planfeed.elements.NotificationsChannel;
 import com.planfeed.elements.PointOfAgenda;
 import com.planfeed.elements.Token;
+import com.planfeed.services.exceptions.ChannelNotFound;
 import com.planfeed.services.exceptions.MeetingNotFound;
 
 
@@ -33,7 +35,7 @@ import com.planfeed.services.exceptions.MeetingNotFound;
  * CREATE TABLE Meeting ( meetingId VARCHAR(20) NOT NULL, title VARCHAR(200), date BIGINT, description VARCHAR(10000), init BIGINT, pauseDate BIGINT, status VARCHAR(10), initOffTime BIGINT, creatorEmail VARCHAR(100),calendarEventId VARCHAR(200), calendarId VARCHAR(200), timeFinish BIGINT, PRIMARY KEY (meetingId));
  * CREATE TABLE PointOfAgenda ( pointId VARCHAR(20) NOT NULL, name VARCHAR(200), duration MEDIUMINT, originalDuration MEDIUMINT, comment VARCHAR(10000),position TINYINT, meetingId VARCHAR(20) NOT NULL, PRIMARY KEY (pointId, meetingId));
  * CREATE TABLE Tokens ( email VARCHAR(50) NOT NULL, token VARCHAR(200), refreshToken VARCHAR(200) NOT NULL, PRIMARY KEY (email));
-
+ * CREATE TABLE Channels ( channelId VARCHAR(200) NOT NULL, startTime BIGINT, PRIMARY KEY (channelId));
  * @author santi
  *
  */
@@ -485,6 +487,90 @@ public class MySqlImpl implements Querys {
 		}
 
 	}
+
+
+	public NotificationsChannel getChannel(String channelId) throws Exception {
+		NotificationsChannel channel = new NotificationsChannel();
+		
+		MySqlConnection mysqlconn = null;
+		Connection conn = null;
+		try{
+			mysqlconn = new MySqlConnection();
+			conn = mysqlconn.getConn();
+		}catch(Exception e){
+			throw new Exception(e.getStackTrace().toString());
+		}
+		PreparedStatement st=null;
+		ResultSet rs=null;
+
+		
+		try{
+			st = conn.prepareStatement("SELECT * FROM Channels WHERE channelId=?;");
+			st.setString(1, channelId);
+			rs= st.executeQuery();
+			if(rs.next()){
+			
+					channel.setChannelId(channelId);
+					channel.setStartTime(rs.getLong("startTime"));
+				
+				
+			}else{
+				throw new ChannelNotFound();
+			}
+			
+			conn.close();
+			rs.close();
+			st.close();
+			return channel;
+		} catch(ChannelNotFound ex){
+			conn.close();
+			rs.close();
+			st.close();
+			throw new ChannelNotFound();
+		}catch(Exception e){
+			conn.close();
+			rs.close();
+			st.close();
+			throw new Exception(e.getStackTrace().toString());
+			
+		}
+	}
+
+
+
+	public void putChannel(NotificationsChannel notiChannel) throws Exception {
+		MySqlConnection mysqlconn = null;
+		Connection conn = null;
+		try{
+			mysqlconn = new MySqlConnection();
+			conn = mysqlconn.getConn();
+		}catch(Exception e){
+			throw new Exception(e.getStackTrace().toString());
+		}
+		PreparedStatement st=null;
+
+		
+		try{
+			st = conn.prepareStatement("INSERT INTO Channels ( channelId, startTime) "
+					+ "VALUES (?,?);");
+			st.setString(1, notiChannel.getChannelId());
+			st.setLong(2, notiChannel.getStartTime());			
+			st.executeUpdate();
+			
+			conn.close();
+			st.close();
+
+		}catch(Exception e){
+			conn.close();
+			st.close();
+			e.printStackTrace();
+			throw new Exception(e.getStackTrace().toString());
+			
+		}
+		
+	}
+	
+	
 
 
 }

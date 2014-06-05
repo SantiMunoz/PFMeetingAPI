@@ -43,6 +43,7 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import com.planfeed.elements.Meeting;
+import com.planfeed.elements.NotificationsChannel;
 import com.planfeed.elements.PointOfAgenda;
 import com.planfeed.elements.Token;
 
@@ -64,6 +65,7 @@ public class AppConfig extends ResourceConfig {
                 Meeting.class, 
                 PointOfAgenda.class,
                 Token.class,
+                NotificationsChannel.class,
                 // register Jackson ObjectMapper resolver
                 MapperProvider.class,
                 JacksonFeature.class
