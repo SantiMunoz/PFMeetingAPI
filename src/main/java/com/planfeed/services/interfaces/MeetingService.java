@@ -18,9 +18,39 @@ import com.planfeed.elements.Meeting;
 
 public interface MeetingService {
 
+	/**
+	 * Busca en la base de datos un meeting con el id especificado.
+	 * Si no lo encuentra retorna error.
+	 * @param id ID del meeting que queremos.
+	 * @return Meeting con el ID especificado.
+	 * @throws Exception
+	 */
 	public Meeting getMeeting(String id) throws Exception;
+	
+	/**
+	 * Modifica el atributo status del meeting correspondiente al meetingId especificado.
+	 * @param meetingId ID del meeting al que queremos cambiar el status.
+	 * @param newStatus Nuevo status a aplicar.
+	 * @throws Exception
+	 */
 	public void modifyStatus(String meetingId, String newStatus) throws Exception;
-	public void deleteMeeting(String meetingId) throws Exception;
+	
+	/**
+	 * Funciona con doble funcionalidad:
+	 * 1- Si pasamos por parámetro un meeting sin id se le asigna una y lo guarda en la base de datos.
+	 * 2- Si pasamos por parámetro un meeting con id actualiza al meeting ya existente en la base de datos.
+	 * @param meeting Meeting que queremos guardar o modificar.
+	 * @param updateEventCalendar Flag que nos indica si es un evento sincronizado con google calendar.
+	 * @return Meeting actualizado.
+	 * @throws Exception
+	 */
 	public Meeting putMeeting(Meeting meeting, boolean updateEventCalendar) throws Exception;
+	
+	/**
+	 * Genera un pdf con el acta de la reunión.
+	 * @param meetingId
+	 * @return
+	 * @throws Exception
+	 */
 	public ByteArrayOutputStream getActa(String meetingId) throws Exception;
 }

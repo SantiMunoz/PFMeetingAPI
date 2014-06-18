@@ -34,9 +34,10 @@ import com.planfeed.others.GeneralMethods;
 import com.planfeed.others.GlobalValues;
 import com.planfeed.services.exceptions.ChannelNotFound;
 import com.planfeed.services.exceptions.MeetingNotFound;
+import com.planfeed.services.interfaces.GoogleService;
 import com.planfeed.services.interfaces.MeetingService;
 
-public class GoogleServiceImpl {
+public class GoogleServiceImpl implements GoogleService {
 	
 	
 	GlobalValues globalVal =GlobalValues.getInstance();

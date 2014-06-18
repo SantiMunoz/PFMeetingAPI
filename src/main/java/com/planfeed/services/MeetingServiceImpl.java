@@ -206,10 +206,6 @@ public class MeetingServiceImpl implements MeetingService {
 		return meeting;
 	}
 
-	public void deleteMeeting(String meetingId) throws Exception {
-		//not implemented
-		
-	}
 	
 	public ByteArrayOutputStream getActa(String meetingId) throws Exception{
 		Meeting meeting;
