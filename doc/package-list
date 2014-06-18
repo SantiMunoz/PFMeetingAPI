@@ -1,0 +1,11 @@
+
+com.planfeed.api
+com.planfeed.api.exceptions
+com.planfeed.bbdd
+com.planfeed.bbdd.interfaces
+com.planfeed.elements
+com.planfeed.jsonmapper
+com.planfeed.others
+com.planfeed.services
+com.planfeed.services.exceptions
+com.planfeed.services.interfaces
