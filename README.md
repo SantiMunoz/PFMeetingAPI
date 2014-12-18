@@ -126,9 +126,9 @@ Todas las rutas que se especifican a continuación parten de la URL base.
  ------------- | ------------- | ------------- | ------------- | -------------
   **PUT** | **/token/{email}** | Authoritzation code: *string* | | Enviamos a la API el email del usuario y el Authoritzation code obtenido del proceso de autenticación. Posteriormente la api utiliza este código para obtener el Access token y el Refresh token del usuario.
 
-## 5. Documentación adicional
+## 6. Documentación adicional
 En el siguiente enlace se puede encontrar toda la documentación relacionada con el proyecto: http://goo.gl/QhE0LK
-## 6. Licencia
+## 7. Licencia
 
 Copyright 2014 Santi Muñoz Mallofre Licensed under the Apache License, 
 	Version 2.0 (the "License"); you may not use this file except in compliance 
